@@ -46,7 +46,7 @@ func TestForwardSingle(t *testing.T) {
 	addr, mockCloser := runMockServer(t, "", &counter)
 	configServer := newConfigServer(addr)
 	c := hydra.NewContext()
-	outForward, err := hydra.NewOutForward([]*hydra.ConfigServer{configServer})
+	outForward, err := hydra.NewOutForward([]*hydra.ConfigServer{configServer}, nil)
 	if err != nil {
 		t.Error(err)
 	}
@@ -71,7 +71,7 @@ func TestForwardReconnect(t *testing.T) {
 	addr, mockCloser := runMockServer(t, "", &counter)
 	configServer := newConfigServer(addr)
 	c := hydra.NewContext()
-	outForward, err := hydra.NewOutForward([]*hydra.ConfigServer{configServer})
+	outForward, err := hydra.NewOutForward([]*hydra.ConfigServer{configServer}, nil)
 	if err != nil {
 		t.Error(err)
 	}
@@ -118,7 +118,7 @@ func TestForwardFailOver(t *testing.T) {
 		secondaryConfigServer,
 	}
 	c := hydra.NewContext()
-	outForward, err := hydra.NewOutForward(configServers)
+	outForward, err := hydra.NewOutForward(configServers, nil)
 	if err != nil {
 		t.Error(err)
 		return

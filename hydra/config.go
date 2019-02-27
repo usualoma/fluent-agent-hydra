@@ -12,6 +12,8 @@ import (
 
 const (
 	DefaultFluentdPort       = 24224
+	DefaultDNSPort           = 53
+	DefaultDNSNetwork        = "udp"
 	DefaultFieldName         = "message"
 	DefaultMaxBufferMessages = 1024 * 1024
 	DefaultTimeKey           = "time"
@@ -27,6 +29,7 @@ type Config struct {
 	ServerRoundRobin bool
 	Logs             []*ConfigLogfile
 	Receiver         *ConfigReceiver
+	Resolver         *ConfigResolver
 	Monitor          *ConfigMonitor
 	SubSecondTime    bool
 }
@@ -52,6 +55,12 @@ type ConfigReceiver struct {
 	Host              string
 	Port              int
 	MaxBufferMessages int
+}
+
+type ConfigResolver struct {
+	Host    string
+	Port    int
+	Network string
 }
 
 type ConfigMonitor struct {
@@ -138,6 +147,15 @@ func (cr *ConfigReceiver) Restrict(c *Config) {
 	}
 }
 
+func (cr *ConfigResolver) Restrict(c *Config) {
+	if cr.Port == 0 {
+		cr.Port = DefaultDNSPort
+	}
+	if cr.Network == "" {
+		cr.Network = DefaultDNSNetwork
+	}
+}
+
 func (cs *ConfigServer) Address() string {
 	return fmt.Sprintf("%s:%d", cs.Host, cs.Port)
 }
@@ -179,5 +197,8 @@ func (c *Config) Restrict() {
 	}
 	if c.Receiver != nil {
 		c.Receiver.Restrict(c)
+	}
+	if c.Resolver != nil {
+		c.Resolver.Restrict(c)
 	}
 }

@@ -177,7 +177,7 @@ func Run(config *Config) *Context {
 	}
 
 	// start out_forward
-	outForward, err := NewOutForward(config.Servers)
+	outForward, err := NewOutForward(config.Servers, config.Resolver)
 	if err != nil {
 		log.Println("[error]", err)
 	} else {

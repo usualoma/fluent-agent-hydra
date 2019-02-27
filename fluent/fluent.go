@@ -21,6 +21,7 @@ limitations under the License.
 package fluent
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -43,6 +44,7 @@ const (
 
 type Config struct {
 	Server    string
+	Resolver  *net.Resolver
 	Timeout   time.Duration
 	RetryWait int
 	MaxRetry  int
@@ -134,7 +136,12 @@ func (f *Fluent) connect() (err error) {
 	if err != nil {
 		return err
 	}
-	addrs, err := net.LookupHost(host)
+	var addrs []string
+	if f.Resolver == nil {
+		addrs, err = net.LookupHost(host)
+	} else {
+		addrs, err = f.Resolver.LookupHost(context.Background(), host)
+	}
 	if err != nil || len(addrs) == 0 {
 		return err
 	}

@@ -1,7 +1,10 @@
 package hydra
 
 import (
+	"context"
+	"fmt"
 	"log"
+	"net"
 	"time"
 
 	"github.com/fujiwara/fluent-agent-hydra/fluent"
@@ -21,10 +24,26 @@ const (
 )
 
 // OutForward ... recieve FluentRecordSet from channel, and send it to passed loggers until success.
-func NewOutForward(configServers []*ConfigServer) (*OutForward, error) {
+func NewOutForward(configServers []*ConfigServer, configResolver *ConfigResolver) (*OutForward, error) {
+	dialer := func(ctx context.Context, network, address string) (net.Conn, error) {
+		addr, err := net.ResolveIPAddr("ip", configResolver.Host)
+		if err != nil {
+			return nil, err
+		}
+
+		d := net.Dialer{}
+		return d.DialContext(ctx, configResolver.Network, fmt.Sprintf("%s:%d", addr.IP, configResolver.Port))
+	}
+	resolver := net.Resolver{
+		Dial: dialer,
+	}
+
 	loggers := make([]*fluent.Fluent, len(configServers))
 	for i, server := range configServers {
-		logger, err := fluent.New(fluent.Config{Server: server.Address()})
+		logger, err := fluent.New(fluent.Config{
+			Server:   server.Address(),
+			Resolver: &resolver,
+		})
 		if err != nil {
 			log.Println("[warning]", err)
 		} else {
